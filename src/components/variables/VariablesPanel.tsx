@@ -1,9 +1,11 @@
 import React from "react";
-import { useStore } from "../../store/store.ts";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState, AppDispatch } from "../../store/store";
+import { toggleVariable } from "../../store/variablesSlice";
 
 export default function VariablesPanel() {
-  const variables = useStore((s) => s.variables);
-  const toggleVariable = useStore((s) => s.toggleVariable);
+  const dispatch = useDispatch<AppDispatch>();
+  const variables = useSelector((state: RootState) => state.variables.variables); // adjust if needed
   const [hovered, setHovered] = React.useState<string | null>(null);
 
   return (
@@ -18,7 +20,7 @@ export default function VariablesPanel() {
                 ? "bg-blue-100 border-blue-400"
                 : "bg-white border-gray-200"
             } ${hovered === v.id ? "ring-2 ring-blue-300" : ""}`}
-            onClick={() => toggleVariable(v.id)}
+            onClick={() => dispatch(toggleVariable(v.id))}
             onMouseEnter={() => setHovered(v.id)}
             onMouseLeave={() => setHovered(null)}
           >

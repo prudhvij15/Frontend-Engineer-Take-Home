@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import  { useState } from "react";
 import {
   LineChart,
   Line,
@@ -18,8 +19,17 @@ const data = [
   { name: "Jul", value: 349, users: 430 },
 ];
 
+interface HoveredData {
+  label: string;
+  payload: {
+    value: number;
+    users: number;
+    [key: string]: number;
+  };
+}
+
 export default function ChartSection() {
-  const [hovered, setHovered] = useState<any>(null);
+  const [hovered, setHovered] = useState<HoveredData | null>(null);
 
   return (
     <div className="relative bg-white rounded shadow p-6 mb-4 min-h-[300px] flex items-center justify-center">
@@ -27,23 +37,28 @@ export default function ChartSection() {
         <LineChart
           data={data}
           onMouseLeave={() => setHovered(null)}
+          onMouseMove={(e) => {
+            if (
+              e &&
+              e.activePayload &&
+              e.activeLabel &&
+              e.activePayload.length > 0
+            ) {
+              setHovered({
+                label: e.activeLabel as string,
+                payload: e.activePayload[0].payload,
+              });
+            }
+          }}
         >
           <XAxis dataKey="name" />
           <YAxis />
-          <RechartsTooltip
-            content={({ active, payload, label }) => {
-              if (active && payload && payload.length) {
-                setHovered({ label, payload: payload[0].payload });
-              } else {
-                setHovered(null);
-              }
-              return null;
-            }}
-          />
+          <RechartsTooltip content={() => null} />
           <Line type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={2} dot />
           <Line type="monotone" dataKey="users" stroke="#f59e42" strokeWidth={2} dot />
         </LineChart>
       </ResponsiveContainer>
+
       {hovered && (
         <div
           className="absolute left-1/2 top-8 -translate-x-1/2 bg-white border rounded shadow-lg p-4 min-w-[180px] animate-fadein z-20"
@@ -54,6 +69,7 @@ export default function ChartSection() {
           <div className="text-sm text-gray-700">Users: {hovered.payload.users}</div>
         </div>
       )}
+
       <style>{`
         @keyframes fadein {
           from { opacity: 0; transform: translateY(10px); }
@@ -65,4 +81,4 @@ export default function ChartSection() {
       `}</style>
     </div>
   );
-} 
+}
