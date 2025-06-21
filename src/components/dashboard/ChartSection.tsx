@@ -1,5 +1,5 @@
 
-import  { useState } from "react";
+import { useState } from "react";
 import {
   LineChart,
   Line,
@@ -7,26 +7,31 @@ import {
   YAxis,
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
+  ReferenceLine,
+  ReferenceDot,
 } from "recharts";
 
 const data = [
-  { name: "Jan", value: 400, users: 240 },
-  { name: "Feb", value: 300, users: 139 },
-  { name: "Mar", value: 200, users: 980 },
-  { name: "Apr", value: 278, users: 390 },
-  { name: "May", value: 189, users: 480 },
-  { name: "Jun", value: 239, users: 380 },
-  { name: "Jul", value: 349, users: 430 },
+  { name: "Jan", value: 40000 },
+  { name: "Feb", value: 30000 },
+  { name: "Mar", value: 20000 },
+  { name: "Apr", value: 27800 },
+  { name: "May", value: 18900 },
+  { name: "Jun", value: 23900 },
+  { name: "Jul", value: 89600 },
+  { name: "Aug", value: 60000 },
+  { name: "Sep", value: 30000 },
+  { name: "Oct", value: 55000 },
 ];
 
 interface HoveredData {
   label: string;
   payload: {
+    name: string;
     value: number;
-    users: number;
-    [key: string]: number;
   };
 }
+
 
 export default function ChartSection() {
   const [hovered, setHovered] = useState<HoveredData | null>(null);
@@ -40,45 +45,73 @@ export default function ChartSection() {
           onMouseMove={(e) => {
             if (
               e &&
-              e.activePayload &&
-              e.activeLabel &&
-              e.activePayload.length > 0
+              e.activeTooltipIndex !== undefined &&
+              e.activeTooltipIndex !== null
             ) {
+              const index = e.activeTooltipIndex;
               setHovered({
-                label: e.activeLabel as string,
-                payload: e.activePayload[0].payload,
+                label: data[index].name,
+                payload: data[index],
               });
             }
           }}
         >
           <XAxis dataKey="name" />
-          <YAxis />
+          <YAxis
+            tickFormatter={(v) => `$${(v / 1000).toFixed(0)}K`}
+          />
           <RechartsTooltip content={() => null} />
-          <Line type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={2} dot />
-          <Line type="monotone" dataKey="users" stroke="#f59e42" strokeWidth={2} dot />
+          <Line
+            type="monotone"
+            dataKey="value"
+            stroke="#A3FF12"
+            strokeWidth={2}
+            dot={{ r: 4, stroke: "#0D0F10", strokeWidth: 2, fill: "#A3FF12" }}
+            activeDot={{
+              r: 6,
+              stroke: "#0D0F10",
+              strokeWidth: 2,
+              fill: "#A3FF12",
+            }}
+          />
+          {hovered && (
+            <>
+              <ReferenceLine
+                x={hovered.label}
+                stroke="#A3FF12"
+                strokeDasharray="4 4"
+              />
+              <ReferenceDot
+                x={hovered.label}
+                y={hovered.payload.value}
+                r={6}
+                fill="#A3FF12"
+                stroke="#0D0F10"
+                strokeWidth={2}
+                isFront
+              />
+            </>
+          )}
         </LineChart>
       </ResponsiveContainer>
 
+      {/* Tooltip Label */}
       {hovered && (
         <div
-          className="absolute left-1/2 top-8 -translate-x-1/2 bg-white border rounded shadow-lg p-4 min-w-[180px] animate-fadein z-20"
-          style={{ animation: "fadein 0.3s" }}
+          className="absolute px-4 py-3 rounded-xl border border-gray-600 shadow-xl bg-[#1A1C1D] text-white w-[160px] text-left z-50"
+          style={{
+            top: 30,
+            left: `calc(${(data.findIndex(d => d.name === hovered.label) / (data.length - 1)) * 100}% - 80px)`,
+          }}
         >
-          <div className="font-semibold mb-1">{hovered.label}</div>
-          <div className="text-sm text-gray-700">Value: {hovered.payload.value}</div>
-          <div className="text-sm text-gray-700">Users: {hovered.payload.users}</div>
+          <div className="text-lg font-semibold">
+            ${ (hovered.payload.value / 1000).toFixed(2) }k
+          </div>
+          <div className="mt-1 text-sm text-green-400 font-medium">
+            4.6% above target
+          </div>
         </div>
       )}
-
-      <style>{`
-        @keyframes fadein {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fadein {
-          animation: fadein 0.3s;
-        }
-      `}</style>
     </div>
   );
 }
